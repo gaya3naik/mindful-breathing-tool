@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindful Breathing Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* CSS is unchanged */
+    :root { --box-start-color: #a1c4fd; --box-end-color: #c2e9fb; --primary-color: #2D3748; --secondary-color: #4A5568; --accent-color: #4299E1; --white: #FFFFFF; --font-family: 'Poppins', sans-serif; }
+    html { height: 100%; }
+    body { margin: 0; padding: 0; height: 100%; font-family: var(--font-family); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; text-align: center; }
+    #app-container { display: flex; flex-direction: column; align-items: center; justify-content: space-around; width: 90%; max-width: 380px; min-height: 480px; padding: 30px; box-sizing: border-box; border-radius: 20px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.5s ease; }
+    .setup-state #breathing-container, .setup-state #quote-container { display: none; }
+    .breathing-state #setup-container, .breathing-state #quote-container { display: none; }
+    .finished-state #breathing-container, .finished-state #setup-container { display: none; }
+    .finished-state #quote-container { display: block; }
+    #setup-container h1 { font-weight: 400; font-size: 24px; line-height: 1.4; color: var(--primary-color); }
+    #setup-container label { display: block; font-size: 18px; color: var(--primary-color); margin-top: 25px; margin-bottom: 15px; }
+    #setup-container input { width: 80px; padding: 10px; font-size: 20px; text-align: center; border: 2px solid #CBD5E0; border-radius: 8px; margin-bottom: 25px; }
+    #breathing-box { width: 100px; height: 100px; background: linear-gradient(45deg, var(--box-start-color), var(--box-end-color)); border-radius: 24px; transition: all 2s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto; }
+    #session-timer-display { font-size: 16px; color: var(--primary-color); margin-top: 20px; height: 20px; visibility: hidden; }
+    #instruction-text { font-size: 28px; font-weight: 600; color: var(--primary-color); height: 35px; }
+    #timer-text { font-size: 20px; font-weight: 400; color: var(--primary-color); height: 24px; visibility: hidden; }
+    button { padding: 12px 25px; font-size: 18px; font-weight: 400; color: var(--white); background-color: var(--accent-color); border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4); }
+    button:hover { background-color: #3182CE; transform: translateY(-2px); }
+    button:disabled { background-color: #A0AEC0; cursor: not-allowed; transform: none; }
+    #stop-btn { background-color: transparent; border: 2px solid var(--secondary-color); color: var(--secondary-color); box-shadow: none; margin-top: 20px; }
+    #stop-btn:hover { background-color: #E2E8F0; color: var(--primary-color); }
+    #quote-container { width: 100%; }
+    #quote-container h2 { font-weight: 600; color: var(--primary-color); }
+    #quote-text { font-size: 15px; font-style: italic; color: var(--secondary-color); line-height: 1.5; margin-bottom: 25px; }
+    .breathing-box-grow { transform: scale(1.6); border-radius: 50%; }
+    .hidden-audio { display: none; }
+  </style>
+</head>
+<body>
+  
+  <!-- NEW: Add audio elements directly to the HTML -->
+  <audio id="inhale-audio" class="hidden-audio" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//tAnxAAAAAAAAAAAAAAAAAAAAAAAABCAAD/4AAAn4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVXVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-ExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVV-RICEBYf//G80EAAgQGAQAFAgBICQoZHygsMjhBRElPVVtkd3+Aj5SYoaWts8HGz9jj6v///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/4AAARikAAAAAAAJAkAADWAAAAAABgJAAANwAAAAAAAAAAAKQAAAAAAAAAAACQACQAIAAGAAHAAyAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAAAAAAACQAAAAAAAAAAAB//pAnBMAAABJSUNDUkdCR0JggYBjdXJ2AAAAAABgAAAABgADAAAAAgAN//8AAn8A//9uAAB3AP//5gAAAQDp//+7AAcAEgDSAHMA/gCPANUAvwD9ALIA8QD+//8A6wAIA/sCcQPBA5cDxwPQA+8EAAAAAAAAAAAAAAAAAAAAAAMzdAAD/iA5IsAAAQAAAAAAAAAAAAAAAAAAAAAAAP//7gADAgIDAgIDAwMECQMEBAUGCQUFCAYHCQcICQgICwwMCwoLDAwMDgsLDQ0ODg0OEg8ODxIQEBESEBISEhMTExQUFBUVFRYWFhcXFxgYGBkZGRoaGhsbGxwdHR4eHh8fHyAgICEhIiIiIyMjJCQkJSUlJiYmJycnKCgoKSkpKioqKyssLC0tLi4uLzAzNDY3ODk6Ozw9Pj9AQUJERUZISUpOUFRYWVpbXV5fYGFiY2VmZ2hpamtsbW5vcHFyc3R2d3h5ent8fX5/gIGCg4WGh4iJiouMjY6PkJGSj5OTlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vrLCxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/AARIAAAAAQAAADAAAANgAgAAAgAFAAMCAwEABQYHCwgJCgsMDQ4PEBESExQVFhcZGxwfISMlJygpLC0uMTM2ODk/QURHSU9UV1hfaGpscnZ6f4OHi4+Sl5ucpaqvuru9wMPGy8/T2Nrf4OTp7fH1+v8A8AAAAMDAwMDAwMDAwP8AAAD/AAAA/wAAAP8AAAD/AABVaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq-ExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"></audio>
+  <audio id="exhale-audio" class="hidden-audio" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//tAnxAAAAAAAAAAAAAAAAAAAAAAAABCAAD/4AAAn4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-RICEBYf//G80EAAgQGAQAFAgBICQoZHygsMjhBRElPVVtkd3+Aj5SYoaWts8HGz9jj6v///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/4AAARikAAAAAAAJAkAADWAAAAAABgJAAANwAAAAAAAAAAAKQAAAAAAAAAAACQACQAIAAGAAHAAyAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAAAAAAACQAAAAAAAAAAAB//pAnBMAAABJSUNDUkdCR0JggYBjdXJ2AAAAAABgAAAABgADAAAAAgAN//8AAn8A//9uAAB3AP//5gAAAQDp//+7AAcAEgDSAHMA/gCPANUAvwD9ALIA8QD+//8A6wAIA/sCcQPBA5cDxwPQA+8EAAAAAAAAAAAAAAAAAAAAAAMzdAAD/iA5IsAAAQAAAAAAAAAAAAAAAAAAAAAAAP//7gADAgIDAgIDAwMECQMEBAUGCQUFCAYHCQcICQgICwwMCwoLDAwMDgsLDQ0ODg0OEg8ODxIQEBESEBISEhMTExQUFBUVFRYWFhcXFxgYGBkZGRoaGhsbGxwdHR4eHh8fHyAgICEhIiIiIyMjJCQkJSUlJiYmJycnKCgoKSkpKioqKyssLC0tLi4uLzAzNDY3ODk6Ozw9Pj9AQUJERUZISUpOUFRYWVpbXV5fYGFiY2VmZ2hpamtsbW5vcHFyc3R2d3h5ent8fX5/gIGCg4WGh4iJiouMjY6PkJGSj5OTlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vrLCxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/AARIAAAAAQAAADAAAANgAgAAAgAFAAMCAwEABQYHCwgJCgsMDQ4PEBESExQVFhcZGxwfISMlJygpLC0uMTM2ODk/QURHSU9UV1hfaGpscnZ6f4OHi4+Sl5ucpaqvuru9wMPGy8/T2Nrf4OTp7fH1+v8A8AAAAMDAwMDAwMDAwP8AAAD/AAAA/wAAAP8AAAD/AABVaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq-ExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"></audio>
+
+  <div id="app-container">
+    <div id="setup-container">
+        <h1>Good job on taking a moment for yourself.</h1>
+        <label for="duration-input">Practice for how many minutes?</label>
+        <input type="number" id="duration-input" value="2" min="1" max="60">
+        <button id="start-btn">Start Session</button>
+    </div>
+    <div id="breathing-container">
+        <div id="breathing-box"></div>
+        <p id="instruction-text"></p>
+        <p id="timer-text"></p>
+        <p id="session-timer-display"></p>
+        <button id="stop-btn">Stop Early</button>
+    </div>
+    <div id="quote-container">
+        <h2>Well Done!</h2>
+        <p id="quote-text"></p>
+        <button id="restart-btn">Go Again</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get audio elements from the HTML
+      const inhaleAudio = document.getElementById('inhale-audio');
+      const exhaleAudio = document.getElementById('exhale-audio');
+      inhaleAudio.volume = 0.5;
+      exhaleAudio.volume = 0.5;
+
+      // Other element references
+      const appContainer = document.getElementById('app-container');
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const restartBtn = document.getElementById('restart-btn');
+      const durationInput = document.getElementById('duration-input');
+      const box = document.getElementById('breathing-box');
+      const instructionText = document.getElementById('instruction-text');
+      const cycleTimerText = document.getElementById('timer-text');
+      const sessionTimerDisplay = document.getElementById('session-timer-display');
+      const quoteText = document.getElementById('quote-text');
+      
+      const pastelPalettes = [ { start: '#ff9a9e', end: '#fecfef' }, { start: '#a1c4fd', end: '#c2e9fb' }, { start: '#d4fc79', end: '#96e6a1' }, { start: '#f6d365', end: '#fda085' }, { start: '#84fab0', end: '#8fd3f4' }, { start: '#fbc2eb', end: '#a6c1ee' }, { start: '#ffecd2', end: '#fcb69f' } ];
+      const affirmations = [ "Breathe in calm, breathe out stress.", "The present moment is the only moment available to us.", "Feelings are just visitors, let them come and go.", "Your breath is an anchor to the present moment.", "With each breath, you are reborn." ];
+      
+      const CYCLE_DURATION = 4;
+      const phases = ['Inhale', 'Hold', 'Exhale', 'Hold'];
+      let currentPhaseIndex = 0, phaseTimeout, cycleTimerInterval, sessionTimerInterval, sessionEndTimeout;
+
+      // Simplified audio unlock flag
+      let audioUnlocked = false;
+
+      function playSound(type) {
+        if (!audioUnlocked) return;
+        if (type === 'inhale') {
+          inhaleAudio.currentTime = 0;
+          inhaleAudio.play();
+        } else if (type === 'exhale') {
+          exhaleAudio.currentTime = 0;
+          exhaleAudio.play();
+        }
+      }
+
+      // All other functions (setUiState, etc.) remain the same
+      function setUiState(state) { appContainer.className = ''; appContainer.classList.add(state); }
+      function setRandomBoxColor() { const { start, end } = pastelPalettes[Math.floor(Math.random() * pastelPalettes.length)]; document.documentElement.style.setProperty('--box-start-color', start); document.documentElement.style.setProperty('--box-end-color', end); }
+      function displayNewAffirmation() { quoteText.textContent = `"${affirmations[Math.floor(Math.random() * affirmations.length)]}"`; }
+      function formatTime(seconds) { const mins = Math.floor(seconds / 60); const secs = seconds % 60; return `${mins}:${secs < 10 ? '0' : ''}${secs}`; }
+
+      function startSession() {
+        setUiState('breathing-state');
+        sessionTimerDisplay.style.visibility = 'visible';
+        cycleTimerText.style.visibility = 'visible';
+        let sessionDuration = parseInt(durationInput.value, 10) * 60;
+        sessionTimerDisplay.textContent = `Time left: ${formatTime(sessionDuration)}`;
+        sessionTimerInterval = setInterval(() => { sessionDuration--; sessionTimerDisplay.textContent = `Time left: ${formatTime(sessionDuration)}`; }, 1000);
+        sessionEndTimeout = setTimeout(stopSession, sessionDuration * 1000);
+        runPhase();
+      }
+
+      function stopSession() {
+        clearTimeout(phaseTimeout);
+        clearTimeout(sessionEndTimeout);
+        sessionEndTimeout = null;
+        clearInterval(cycleTimerInterval);
+        clearInterval(sessionTimerInterval);
+        setUiState('finished-state');
+        displayNewAffirmation();
+        setRandomBoxColor();
+      }
+      
+      function runPhase() {
+        if (!sessionEndTimeout) return;
+        instructionText.textContent = phases[currentPhaseIndex];
+        if (phases[currentPhaseIndex] === 'Inhale') { box.classList.add('breathing-box-grow'); playSound('inhale'); }
+        else if (phases[currentPhaseIndex] === 'Exhale') { box.classList.remove('breathing-box-grow'); playSound('exhale'); }
+        let countdown = CYCLE_DURATION;
+        cycleTimerText.textContent = countdown;
+        cycleTimerInterval = setInterval(() => { countdown--; cycleTimerText.textContent = countdown > 0 ? countdown : ''; if (countdown <= 0) clearInterval(cycleTimerInterval); }, 1000);
+        phaseTimeout = setTimeout(() => { currentPhaseIndex = (currentPhaseIndex + 1) % phases.length; runPhase(); }, CYCLE_DURATION * 1000);
+      }
+
+      startBtn.addEventListener('click', () => {
+        // Simple and reliable audio unlock
+        if (!audioUnlocked) {
+          inhaleAudio.play();
+          inhaleAudio.pause();
+          audioUnlocked = true;
+        }
+        startSession();
+      });
+
+      stopBtn.addEventListener('click', stopSession);
+      restartBtn.addEventListener('click', () => { setUiState('setup-state'); });
+
+      // Initial Page Setup
+      setUiState('setup-state');
+      setRandomBoxColor();
+      durationInput.focus();
+    });
+  </script>
+
+</body>
+</html>
